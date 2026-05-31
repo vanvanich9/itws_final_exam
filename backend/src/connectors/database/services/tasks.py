@@ -115,6 +115,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
 
     async def delete(self, task: Task) -> bool:
         async with self.session() as sess:
-            await sess.delete(task)
+            row = await sess.merge(task)
+            await sess.delete(row)
             await sess.flush()
             return True

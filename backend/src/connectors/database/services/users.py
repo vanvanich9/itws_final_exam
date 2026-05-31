@@ -68,6 +68,7 @@ class UserDatabaseConnector(BaseDatabaseConnector):
 
     async def delete(self, user: User) -> bool:
         async with self.session() as sess:
-            await sess.delete(user)
+            row = await sess.merge(user)
+            await sess.delete(row)
             await sess.flush()
             return True

@@ -1,7 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from core.settings.database import DatabaseSettings
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -12,16 +11,19 @@ from sqlalchemy.ext.asyncio import (
 
 class BaseDatabaseConnector:
     def __init__(
-        self, settings: DatabaseSettings | None = None, url: str | None = None
+        self,
+        *,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        database: str,
     ) -> None:
-        resolved = url
-        if resolved is None:
-            resolved = (
-                settings.url
-                if settings is not None
-                else DatabaseSettings().url
-            )
-        self._engine: AsyncEngine = create_async_engine(resolved)
+        url = (
+            f'postgresql+asyncpg://{username}:{password}'
+            f'@{host}:{port}/{database}'
+        )
+        self._engine: AsyncEngine = create_async_engine(url)
         self._session_factory = async_sessionmaker(
             self._engine,
             expire_on_commit=False,

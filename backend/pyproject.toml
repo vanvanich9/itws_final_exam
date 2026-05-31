@@ -21,6 +21,8 @@ uvicorn = {extras = ["standard"], version = "^0.47.0"}
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.3"
 ruff = "^0.15.13"
+pytest-asyncio = "^1.4.0"
+httpx = "^0.28.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -57,3 +59,6 @@ ignore = [
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 docstring-quotes = "double"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

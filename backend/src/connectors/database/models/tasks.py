@@ -5,6 +5,7 @@ from core.config.enums import PriorityTask, StatusTask, TypeTask
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from src.connectors.database.models._base import Base
+from src.logic.enums import enum_values
 
 
 class Task(Base):
@@ -19,13 +20,16 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[StatusTask] = mapped_column(
-        Enum(StatusTask), default=StatusTask.BACKLOG
+        Enum(StatusTask, values_callable=enum_values),
+        default=StatusTask.BACKLOG,
     )
     priority: Mapped[PriorityTask] = mapped_column(
-        Enum(PriorityTask), default=PriorityTask.LOW
+        Enum(PriorityTask, values_callable=enum_values),
+        default=PriorityTask.LOW,
     )
     type: Mapped[TypeTask] = mapped_column(
-        Enum(TypeTask), default=TypeTask.OTHER
+        Enum(TypeTask, values_callable=enum_values),
+        default=TypeTask.OTHER,
     )
     pull_request_url: Mapped[str | None] = mapped_column(
         String(255), nullable=True
