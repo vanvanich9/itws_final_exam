@@ -1,8 +1,9 @@
-name: CI
+name: CI Backend
 
 on:
   push:
-  pull_request:
+    paths:
+      - 'backend/**'
 
 jobs:
   backend:
