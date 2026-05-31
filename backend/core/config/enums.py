@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class StatusTask(str, Enum):
+class StatusTask(StrEnum):
     BACKLOG = 'backlog'
     TO_DO = 'to_do'
     IN_PROGRESS = 'in_progress'
@@ -10,14 +10,14 @@ class StatusTask(str, Enum):
     CANCELLED = 'cancelled'
 
 
-class PriorityTask(str, Enum):
+class PriorityTask(StrEnum):
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
     CRITICAL = 'critical'
 
 
-class TypeTask(str, Enum):
+class TypeTask(StrEnum):
     FEATURE = 'feature'
     BUG = 'bug'
     DOCUMENTATION = 'documentation'

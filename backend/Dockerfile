@@ -11,8 +11,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 RUN pip install --no-cache-dir poetry
 
-COPY entrypoint.sh ./
-RUN chmod +x ./entrypoint.sh
+COPY entrypoint.sh entrypoint.test.sh ./
+RUN chmod +x ./entrypoint.sh ./entrypoint.test.sh
 
 COPY pyproject.toml poetry.lock ./
 
@@ -26,6 +26,12 @@ ENV DOCKER_ENV=dev
 EXPOSE 8000
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+
+FROM base AS test
+
+RUN poetry install --no-interaction --no-ansi --no-root
+
+ENTRYPOINT ["/app/entrypoint.test.sh"]
 
 FROM base AS prod
 
