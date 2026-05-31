@@ -1,3 +1,5 @@
+"""Database integration tests."""
+
 from datetime import UTC, datetime, timedelta
 
 from core.config.enums import PriorityTask, StatusTask, TypeTask
@@ -7,6 +9,12 @@ async def test_migrations_applied(
     migrated_schema,
     initial_migration_revision,
 ):
+    """
+    Verify initial migration created expected tables.
+
+    :param migrated_schema: Applied migration version and tables.
+    :param initial_migration_revision: Expected Alembic revision.
+    """
     version, tables = migrated_schema
 
     assert version == initial_migration_revision
@@ -15,6 +23,12 @@ async def test_migrations_applied(
 
 
 async def test_user_create_and_get_by_id(user_connector, user):
+    """
+    Verify user can be fetched by identifier after creation.
+
+    :param user_connector: User database connector.
+    :param user: Created user fixture.
+    """
     found = await user_connector.get_by_id(user.id)
 
     assert found is not None
@@ -24,6 +38,12 @@ async def test_user_create_and_get_by_id(user_connector, user):
 
 
 async def test_user_authenticate(user_connector, user):
+    """
+    Verify user authentication with valid and invalid password.
+
+    :param user_connector: User database connector.
+    :param user: Created user fixture.
+    """
     authenticated = await user_connector.authenticate(user.email, 'secret')
     wrong_password = await user_connector.authenticate(user.email, 'wrong')
 
@@ -33,6 +53,12 @@ async def test_user_authenticate(user_connector, user):
 
 
 async def test_user_update(user_connector, user):
+    """
+    Verify user fields can be updated.
+
+    :param user_connector: User database connector.
+    :param user: Created user fixture.
+    """
     updated = await user_connector.update(
         user.id,
         name='Updated User',
@@ -45,6 +71,12 @@ async def test_user_update(user_connector, user):
 
 
 async def test_user_delete(user_connector, user):
+    """
+    Verify user can be deleted.
+
+    :param user_connector: User database connector.
+    :param user: Created user fixture.
+    """
     deleted = await user_connector.delete(user)
     found = await user_connector.get_by_id(user.id)
 
@@ -53,6 +85,13 @@ async def test_user_delete(user_connector, user):
 
 
 async def test_task_create_and_get_by_id(task_connector, task, user):
+    """
+    Verify task can be fetched by identifier after creation.
+
+    :param task_connector: Task database connector.
+    :param task: Created task fixture.
+    :param user: Owner user fixture.
+    """
     found = await task_connector.get_by_id(task.id)
 
     assert found is not None
@@ -62,6 +101,13 @@ async def test_task_create_and_get_by_id(task_connector, task, user):
 
 
 async def test_task_list_filters(task_connector, task, user):
+    """
+    Verify task list filters by user, status, priority, and type.
+
+    :param task_connector: Task database connector.
+    :param task: Existing task fixture.
+    :param user: Owner user fixture.
+    """
     await task_connector.create(
         user_id=user.id,
         title='Filtered task',
@@ -95,6 +141,12 @@ async def test_task_list_filters(task_connector, task, user):
 
 
 async def test_task_only_actual_tasks(task_connector, user):
+    """
+    Verify only_actual_tasks excludes stale done tasks.
+
+    :param task_connector: Task database connector.
+    :param user: Owner user fixture.
+    """
     old_done = await task_connector.create(
         user_id=user.id,
         title='Old done',
@@ -132,6 +184,12 @@ async def test_task_only_actual_tasks(task_connector, user):
 
 
 async def test_task_update(task_connector, task):
+    """
+    Verify task fields can be updated.
+
+    :param task_connector: Task database connector.
+    :param task: Created task fixture.
+    """
     updated = await task_connector.update(
         task.id,
         title='Updated title',
@@ -150,6 +208,12 @@ async def test_task_update(task_connector, task):
 
 
 async def test_task_delete(task_connector, task):
+    """
+    Verify task can be deleted.
+
+    :param task_connector: Task database connector.
+    :param task: Created task fixture.
+    """
     deleted = await task_connector.delete(task)
     found = await task_connector.get_by_id(task.id)
 

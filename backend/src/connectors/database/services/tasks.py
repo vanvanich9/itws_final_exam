@@ -1,3 +1,5 @@
+"""Task database connector."""
+
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -9,6 +11,8 @@ from src.connectors.database.services._base import BaseDatabaseConnector
 
 
 class TaskDatabaseConnector(BaseDatabaseConnector):
+    """CRUD and query operations for tasks."""
+
     async def create(
         self,
         user_id: UUID,
@@ -19,6 +23,18 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         task_type: TypeTask = TypeTask.OTHER,
         pull_request_url: str | None = None,
     ) -> Task:
+        """
+        Create a new task.
+
+        :param user_id: Owner user identifier.
+        :param title: Task title.
+        :param description: Task description.
+        :param status: Task status.
+        :param priority: Task priority.
+        :param task_type: Task type.
+        :param pull_request_url: Optional pull request URL.
+        :returns: Created task.
+        """
         async with self.session() as sess:
             row = Task(
                 user_id=user_id,
@@ -35,6 +51,12 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
             return row
 
     async def get_by_id(self, task_id: UUID) -> Task | None:
+        """
+        Fetch a task by identifier.
+
+        :param task_id: Task identifier.
+        :returns: Task if found, otherwise None.
+        """
         async with self.session() as sess:
             return await sess.get(Task, task_id)
 
@@ -46,6 +68,16 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         task_types: list[TypeTask] | None = None,
         only_actual_tasks: bool = False,
     ) -> list[Task]:
+        """
+        List tasks with optional filters.
+
+        :param user_id: Filter by owner, if provided.
+        :param statuses: Filter by statuses, if provided.
+        :param priorities: Filter by priorities, if provided.
+        :param task_types: Filter by task types, if provided.
+        :param only_actual_tasks: Exclude stale done/cancelled tasks.
+        :returns: Matching tasks.
+        """
         if statuses is not None and not statuses:
             return []
         if priorities is not None and not priorities:
@@ -91,6 +123,19 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         task_type: TypeTask | None = None,
         pull_request_url: str | None = None,
     ) -> Task | None:
+        """
+        Update task fields.
+
+        :param task_id: Task identifier.
+        :param user_id: New owner identifier, if provided.
+        :param title: New title, if provided.
+        :param description: New description, if provided.
+        :param status: New status, if provided.
+        :param priority: New priority, if provided.
+        :param task_type: New task type, if provided.
+        :param pull_request_url: New pull request URL, if provided.
+        :returns: Updated task if found, otherwise None.
+        """
         async with self.session() as sess:
             row = await sess.get(Task, task_id)
             if row is None:
@@ -114,6 +159,12 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
             return row
 
     async def delete(self, task: Task) -> bool:
+        """
+        Delete a task.
+
+        :param task: Task instance to delete.
+        :returns: True when deletion succeeds.
+        """
         async with self.session() as sess:
             row = await sess.merge(task)
             await sess.delete(row)

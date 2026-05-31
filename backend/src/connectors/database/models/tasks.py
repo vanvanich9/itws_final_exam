@@ -1,3 +1,5 @@
+"""Task ORM model."""
+
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -9,6 +11,8 @@ from src.logic.enums import enum_values
 
 
 class Task(Base):
+    """User task."""
+
     __tablename__ = 'tasks'
 
     id: Mapped[UUID] = mapped_column(

@@ -1,7 +1,11 @@
+"""Task-related enum definitions."""
+
 from enum import StrEnum
 
 
 class StatusTask(StrEnum):
+    """Task workflow status."""
+
     BACKLOG = 'backlog'
     TO_DO = 'to_do'
     IN_PROGRESS = 'in_progress'
@@ -11,6 +15,8 @@ class StatusTask(StrEnum):
 
 
 class PriorityTask(StrEnum):
+    """Task priority level."""
+
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
@@ -18,6 +24,8 @@ class PriorityTask(StrEnum):
 
 
 class TypeTask(StrEnum):
+    """Task type."""
+
     FEATURE = 'feature'
     BUG = 'bug'
     DOCUMENTATION = 'documentation'

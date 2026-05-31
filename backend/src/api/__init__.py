@@ -1,3 +1,5 @@
+"""Root API router."""
+
 from fastapi import APIRouter
 from src.api.ping import router as ping_router
 

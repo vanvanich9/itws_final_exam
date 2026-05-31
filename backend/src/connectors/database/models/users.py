@@ -1,3 +1,5 @@
+"""User ORM model."""
+
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -8,6 +10,8 @@ from src.connectors.database.models._base import Base
 
 
 class User(Base):
+    """Application user."""
+
     __tablename__ = 'users'
 
     id: Mapped[UUID] = mapped_column(
