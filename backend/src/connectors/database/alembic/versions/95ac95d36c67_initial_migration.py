@@ -1,4 +1,4 @@
-"""Initial migration
+"""Initial migration.
 
 Revision ID: 95ac95d36c67
 Revises:
@@ -20,6 +20,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    """Upgrade schema."""
     bind = op.get_bind()
 
     statustask = postgresql.ENUM(
@@ -111,6 +112,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Downgrade schema."""
     op.drop_table('tasks')
     op.drop_table('users')
     op.execute(sa.text('DROP TYPE IF EXISTS typetask'))

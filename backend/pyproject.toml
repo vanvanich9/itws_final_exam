@@ -51,10 +51,16 @@ select = [
     "Q",   # flake8-quotes (inline vs docstring where applicable)
     "PT",  # flake8-pytest-style
     "RUF", # Ruff-specific
+    "D",   # pydocstyle (docstrings)
 ]
 ignore = [
     "COM812", # trailing comma
+    "D203",   # one-blank-line-before-class
+    "D213",   # multi-line-summary-second-line
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"

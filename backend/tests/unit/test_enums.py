@@ -1,3 +1,5 @@
+"""Enum helper unit tests."""
+
 import pytest
 from core.config.enums import PriorityTask, StatusTask, TypeTask
 from src.logic.enums import enum_values
@@ -22,10 +24,17 @@ from src.logic.enums import enum_values
     ],
 )
 def test_enum_values(enum_cls, expected):
+    """
+    Verify enum_values returns member values for task enums.
+
+    :param enum_cls: Enum class under test.
+    :param expected: Expected enum values.
+    """
     assert enum_values(enum_cls) == expected
 
 
 def test_enum_values_uses_member_values_not_names():
+    """Verify enum_values returns values rather than member names."""
     values = enum_values(StatusTask)
 
     assert StatusTask.BACKLOG.value in values

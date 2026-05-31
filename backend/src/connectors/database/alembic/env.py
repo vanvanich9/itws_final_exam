@@ -1,3 +1,5 @@
+"""Alembic migration environment."""
+
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -21,11 +23,17 @@ target_metadata = Base.metadata
 
 
 def _sync_database_url() -> str:
+    """
+    Build synchronous SQLAlchemy URL for Alembic.
+
+    :returns: PostgreSQL connection URL for psycopg.
+    """
     url = DatabaseSettings().url
     return url.replace('+asyncpg', '+psycopg', 1)
 
 
 def run_migrations_offline() -> None:
+    """Run migrations in offline mode."""
     url = _sync_database_url()
     context.configure(
         url=url,
@@ -39,6 +47,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run migrations in online mode."""
     section = config.get_section(config.config_ini_section, {})
     section['sqlalchemy.url'] = _sync_database_url()
 
