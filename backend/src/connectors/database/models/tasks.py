@@ -1,13 +1,17 @@
 """Task ORM model."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from core.config.enums import PriorityTask, StatusTask, TypeTask
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Uuid
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.connectors.database.models._base import Base
 from src.logic.enums import enum_values
+
+if TYPE_CHECKING:
+    from src.connectors.database.models.users import User
 
 
 class Task(Base):
@@ -43,4 +47,9 @@ class Task(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now, onupdate=datetime.now
+    )
+
+    user: Mapped['User'] = relationship(
+        back_populates='tasks',
+        lazy='select',
     )

@@ -2,7 +2,6 @@
 
 from uuid import UUID
 
-import bcrypt
 from sqlalchemy import select
 from src.connectors.database.models import User
 from src.connectors.database.services._base import BaseDatabaseConnector
@@ -11,49 +10,24 @@ from src.connectors.database.services._base import BaseDatabaseConnector
 class UserDatabaseConnector(BaseDatabaseConnector):
     """CRUD and authentication operations for users."""
 
-    @staticmethod
-    def _hash_password(plain: str) -> str:
-        """
-        Hash a plain-text password.
-
-        :param plain: Plain-text password.
-        :returns: Bcrypt password hash.
-        """
-        return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
-
-    @staticmethod
-    def _verify_password(plain: str, hashed: str) -> bool:
-        """
-        Verify a plain-text password against a hash.
-
-        :param plain: Plain-text password.
-        :param hashed: Stored password hash.
-        :returns: Whether the password matches.
-        """
-        try:
-            return bcrypt.checkpw(plain.encode(), hashed.encode())
-        except ValueError:
-            return False
-
     async def create(self, email: str, password: str, name: str) -> User:
         """
         Create a new user.
 
         :param email: User email.
-        :param password: Plain-text password.
+        :param password: Bcrypt password hash.
         :param name: Display name.
         :returns: Created user.
         """
         async with self.session() as sess:
-            row = User(
+            user = User(
                 email=email,
-                password=self._hash_password(password),
+                password=password,
                 name=name,
             )
-            sess.add(row)
+            sess.add(user)
             await sess.flush()
-            await sess.refresh(row)
-            return row
+            return user
 
     async def get_by_id(self, user_id: UUID) -> User | None:
         """
@@ -65,27 +39,21 @@ class UserDatabaseConnector(BaseDatabaseConnector):
         async with self.session() as sess:
             return await sess.get(User, user_id)
 
-    async def authenticate(self, email: str, password: str) -> User | None:
+    async def get_by_email(self, email: str) -> User | None:
         """
-        Authenticate a user by email and password.
+        Fetch a user by email.
 
         :param email: User email.
-        :param password: Plain-text password.
-        :returns: User if credentials are valid, otherwise None.
+        :returns: User if found, otherwise None.
         """
         async with self.session() as sess:
             stmt = select(User).where(User.email == email)
             result = await sess.execute(stmt)
-            user = result.scalar_one_or_none()
-            if user is None:
-                return None
-            if not self._verify_password(password, user.password):
-                return None
-            return user
+            return result.scalar_one_or_none()
 
     async def update(
         self,
-        user_id: UUID,
+        user: User,
         email: str | None = None,
         password: str | None = None,
         name: str | None = None,
@@ -93,35 +61,32 @@ class UserDatabaseConnector(BaseDatabaseConnector):
         """
         Update user fields.
 
-        :param user_id: User identifier.
+        :param user: User instance to update.
         :param email: New email, if provided.
-        :param password: New plain-text password, if provided.
+        :param password: New password hash, if provided.
         :param name: New display name, if provided.
         :returns: Updated user if found, otherwise None.
         """
         async with self.session() as sess:
-            row = await sess.get(User, user_id)
-            if row is None:
-                return None
+            merged = await sess.merge(user)
             if email is not None:
-                row.email = email
+                merged.email = email
             if name is not None:
-                row.name = name
+                merged.name = name
             if password is not None:
-                row.password = self._hash_password(password)
+                merged.password = password
             await sess.flush()
-            await sess.refresh(row)
-            return row
+            return merged
 
-    async def delete(self, user: User) -> bool:
+    async def delete(self, user: User) -> User:
         """
         Delete a user.
 
         :param user: User instance to delete.
-        :returns: True when deletion succeeds.
+        :returns: Deleted user.
         """
         async with self.session() as sess:
-            row = await sess.merge(user)
-            await sess.delete(row)
-            await sess.flush()
-            return True
+            merged = await sess.merge(user)
+            await sess.delete(merged)
+            await sess.commit()
+            return merged

@@ -30,3 +30,10 @@ class TypeTask(StrEnum):
     BUG = 'bug'
     DOCUMENTATION = 'documentation'
     OTHER = 'other'
+
+
+class TokenType(StrEnum):
+    """JWT token purpose."""
+
+    ACCESS = 'access_token'
+    REFRESH = 'refresh_token'
