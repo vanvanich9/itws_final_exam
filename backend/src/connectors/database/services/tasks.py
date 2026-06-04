@@ -1,10 +1,9 @@
 """Task database connector."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from core.config.enums import PriorityTask, StatusTask, TypeTask
-from core.config.general import MAX_ACTUAL_TIME
 from sqlalchemy import or_, select
 from src.connectors.database.models import Task
 from src.connectors.database.services._base import BaseDatabaseConnector
@@ -36,7 +35,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         :returns: Created task.
         """
         async with self.session() as sess:
-            row = Task(
+            task = Task(
                 user_id=user_id,
                 title=title,
                 description=description,
@@ -45,10 +44,9 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
                 type=task_type,
                 pull_request_url=pull_request_url,
             )
-            sess.add(row)
+            sess.add(task)
             await sess.flush()
-            await sess.refresh(row)
-            return row
+            return task
 
     async def get_by_id(self, task_id: UUID) -> Task | None:
         """
@@ -66,7 +64,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         statuses: list[StatusTask] | None = None,
         priorities: list[PriorityTask] | None = None,
         task_types: list[TypeTask] | None = None,
-        only_actual_tasks: bool = False,
+        updated_within_weeks: int | None = None,
     ) -> list[Task]:
         """
         List tasks with optional filters.
@@ -75,7 +73,9 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         :param statuses: Filter by statuses, if provided.
         :param priorities: Filter by priorities, if provided.
         :param task_types: Filter by task types, if provided.
-        :param only_actual_tasks: Exclude stale done/cancelled tasks.
+        :param updated_within_weeks: When set, include done/cancelled tasks
+            only if updated within this many weeks; always include other
+            statuses.
         :returns: Matching tasks.
         """
         if statuses is not None and not statuses:
@@ -95,10 +95,10 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
                 stmt = stmt.where(Task.priority.in_(priorities))
             if task_types is not None:
                 stmt = stmt.where(Task.type.in_(task_types))
-            if only_actual_tasks:
-                cutoff = (datetime.now(UTC) - MAX_ACTUAL_TIME).replace(
-                    tzinfo=None
-                )
+            if updated_within_weeks is not None:
+                cutoff = (
+                    datetime.now(UTC) - timedelta(weeks=updated_within_weeks)
+                ).replace(tzinfo=None)
                 done_or_cancelled = (
                     StatusTask.DONE,
                     StatusTask.CANCELLED,
@@ -114,7 +114,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
 
     async def update(
         self,
-        task_id: UUID,
+        task: Task,
         user_id: UUID | None = None,
         title: str | None = None,
         description: str | None = None,
@@ -137,26 +137,23 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         :returns: Updated task if found, otherwise None.
         """
         async with self.session() as sess:
-            row = await sess.get(Task, task_id)
-            if row is None:
-                return None
+            merged = await sess.merge(task)
             if user_id is not None:
-                row.user_id = user_id
+                merged.user_id = user_id
             if title is not None:
-                row.title = title
+                merged.title = title
             if description is not None:
-                row.description = description
+                merged.description = description
             if status is not None:
-                row.status = status
+                merged.status = status
             if priority is not None:
-                row.priority = priority
+                merged.priority = priority
             if task_type is not None:
-                row.type = task_type
+                merged.type = task_type
             if pull_request_url is not None:
-                row.pull_request_url = pull_request_url
+                merged.pull_request_url = pull_request_url
             await sess.flush()
-            await sess.refresh(row)
-            return row
+            return merged
 
     async def delete(self, task: Task) -> bool:
         """
@@ -166,7 +163,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         :returns: True when deletion succeeds.
         """
         async with self.session() as sess:
-            row = await sess.merge(task)
-            await sess.delete(row)
-            await sess.flush()
+            merged = await sess.merge(task)
+            await sess.delete(merged)
+            await sess.commit()
             return True

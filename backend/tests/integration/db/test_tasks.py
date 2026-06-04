@@ -1,87 +1,8 @@
-"""Database integration tests."""
+"""Task database connector integration tests."""
 
 from datetime import UTC, datetime, timedelta
 
 from core.config.enums import PriorityTask, StatusTask, TypeTask
-
-
-async def test_migrations_applied(
-    migrated_schema,
-    initial_migration_revision,
-):
-    """
-    Verify initial migration created expected tables.
-
-    :param migrated_schema: Applied migration version and tables.
-    :param initial_migration_revision: Expected Alembic revision.
-    """
-    version, tables = migrated_schema
-
-    assert version == initial_migration_revision
-    assert 'users' in tables
-    assert 'tasks' in tables
-
-
-async def test_user_create_and_get_by_id(user_connector, user):
-    """
-    Verify user can be fetched by identifier after creation.
-
-    :param user_connector: User database connector.
-    :param user: Created user fixture.
-    """
-    found = await user_connector.get_by_id(user.id)
-
-    assert found is not None
-    assert found.id == user.id
-    assert found.email == user.email
-    assert found.name == user.name
-
-
-async def test_user_authenticate(user_connector, user):
-    """
-    Verify user authentication with valid and invalid password.
-
-    :param user_connector: User database connector.
-    :param user: Created user fixture.
-    """
-    authenticated = await user_connector.authenticate(user.email, 'secret')
-    wrong_password = await user_connector.authenticate(user.email, 'wrong')
-
-    assert authenticated is not None
-    assert authenticated.id == user.id
-    assert wrong_password is None
-
-
-async def test_user_update(user_connector, user):
-    """
-    Verify user fields can be updated.
-
-    :param user_connector: User database connector.
-    :param user: Created user fixture.
-    """
-    updated = await user_connector.update(
-        user.id,
-        name='Updated User',
-        email=f'updated-{user.id.hex[:8]}@example.com',
-    )
-
-    assert updated is not None
-    assert updated.name == 'Updated User'
-    assert updated.email.endswith('@example.com')
-
-
-async def test_user_delete(user_connector, user):
-    """
-    Verify user can be deleted.
-
-    :param user_connector: User database connector.
-    :param user: Created user fixture.
-    """
-    deleted = await user_connector.delete(user)
-    found = await user_connector.get_by_id(user.id)
-
-    assert deleted is True
-    assert found is None
 
 
 async def test_task_create_and_get_by_id(task_connector, task, user):
@@ -134,15 +55,15 @@ async def test_task_list_filters(task_connector, task, user):
 
     assert len(by_user) >= 2
     assert len(by_status) >= 1
-    assert all(task.status == StatusTask.IN_PROGRESS for task in by_status)
+    assert all(t.status == StatusTask.IN_PROGRESS for t in by_status)
     assert len(by_priority) >= 1
     assert len(by_type) >= 1
     assert empty_status == []
 
 
-async def test_task_only_actual_tasks(task_connector, user):
+async def test_task_updated_within_weeks(task_connector, user):
     """
-    Verify only_actual_tasks excludes stale done tasks.
+    Verify updated_within_weeks excludes stale done tasks.
 
     :param task_connector: Task database connector.
     :param user: Owner user fixture.
@@ -174,7 +95,7 @@ async def test_task_only_actual_tasks(task_connector, user):
 
     actual = await task_connector.list(
         user_id=user.id,
-        only_actual_tasks=True,
+        updated_within_weeks=2,
     )
     actual_ids = {item.id for item in actual}
 
@@ -191,7 +112,7 @@ async def test_task_update(task_connector, task):
     :param task: Created task fixture.
     """
     updated = await task_connector.update(
-        task.id,
+        task,
         title='Updated title',
         status=StatusTask.DONE,
         priority=PriorityTask.CRITICAL,
