@@ -4,17 +4,17 @@ Single-page application for managing personal tasks on a Kanban board. Built wit
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | SvelteKit 2 |
+| Layer      | Technology                                                  |
+| ---------- | ----------------------------------------------------------- |
+| Framework  | SvelteKit 2                                                 |
 | UI library | Svelte 5 (runes: `$state`, `$derived`, `$effect`, `$props`) |
-| Language | TypeScript |
-| Build tool | Vite 5 |
-| Adapter | `@sveltejs/adapter-node` |
-| Unit tests | Vitest + Testing Library |
-| E2E tests | Playwright |
-| Linting | ESLint 9 + `eslint-plugin-svelte` |
-| Formatting | Prettier + `prettier-plugin-svelte` |
+| Language   | TypeScript                                                  |
+| Build tool | Vite 5                                                      |
+| Adapter    | `@sveltejs/adapter-node`                                    |
+| Unit tests | Vitest + Testing Library                                    |
+| E2E tests  | Playwright                                                  |
+| Linting    | ESLint 9 + `eslint-plugin-svelte`                           |
+| Formatting | Prettier + `prettier-plugin-svelte`                         |
 
 ## Features
 
@@ -52,11 +52,11 @@ The app disables SSR (`ssr = false` in the root layout). All pages are rendered 
 
 Svelte 5 rune-based stores (plain classes exported as singletons):
 
-| Store | File | Responsibility |
-|-------|------|----------------|
-| `authStore` | `src/lib/stores/auth.svelte.ts` | Current user, login/logout |
-| `tasksStore` | `src/lib/stores/tasks.svelte.ts` | Task list, CRUD, filtering |
-| `toastStore` | `src/lib/stores/toasts.svelte.ts` | Notification queue |
+| Store        | File                              | Responsibility             |
+| ------------ | --------------------------------- | -------------------------- |
+| `authStore`  | `src/lib/stores/auth.svelte.ts`   | Current user, login/logout |
+| `tasksStore` | `src/lib/stores/tasks.svelte.ts`  | Task list, CRUD, filtering |
+| `toastStore` | `src/lib/stores/toasts.svelte.ts` | Notification queue         |
 
 ### API Client
 
@@ -73,12 +73,12 @@ Domain-specific API modules:
 
 ## Routes
 
-| Path | File | Description |
-|------|------|-------------|
-| `/` | `routes/+page.svelte` | Redirects to `/board` or `/login` |
-| `/login` | `routes/login/+page.svelte` | Login form |
-| `/register` | `routes/register/+page.svelte` | Registration form |
-| `/board` | `routes/board/+page.svelte` | Kanban board (auth required) |
+| Path        | File                           | Description                       |
+| ----------- | ------------------------------ | --------------------------------- |
+| `/`         | `routes/+page.svelte`          | Redirects to `/board` or `/login` |
+| `/login`    | `routes/login/+page.svelte`    | Login form                        |
+| `/register` | `routes/register/+page.svelte` | Registration form                 |
+| `/board`    | `routes/board/+page.svelte`    | Kanban board (auth required)      |
 
 The board layout (`routes/board/+layout.ts`) guards the route — unauthenticated users are redirected to `/login`.
 
@@ -146,11 +146,11 @@ npm run dev -- --port 3000
 
 ## Environment Variables
 
-| Variable | Scope | Default | Description |
-|----------|-------|---------|-------------|
-| `PUBLIC_API_URL` | Client + server | `""` | Base URL for API calls. Empty string = same-origin (proxy mode) |
-| `BACKEND_URL` | Server only | `http://localhost:8000` | Backend address for the API proxy hook |
-| `ORIGIN` | Server | — | Public origin URL (used by Playwright and preview server) |
+| Variable         | Scope           | Default                 | Description                                                     |
+| ---------------- | --------------- | ----------------------- | --------------------------------------------------------------- |
+| `PUBLIC_API_URL` | Client + server | `""`                    | Base URL for API calls. Empty string = same-origin (proxy mode) |
+| `BACKEND_URL`    | Server only     | `http://localhost:8000` | Backend address for the API proxy hook                          |
+| `ORIGIN`         | Server          | —                       | Public origin URL (used by Playwright and preview server)       |
 
 See [.env.example](./.env.example) for a template.
 
@@ -204,16 +204,16 @@ The `make test` target uses `docker-compose.test.yml`, which spins up PostgreSQL
 
 Reusable components in `src/lib/components/ui/`:
 
-| Component | Purpose |
-|-----------|---------|
-| `Button` | Primary, secondary, danger variants with loading state |
-| `Input` | Text input with label and error display |
-| `Select` | Dropdown select |
-| `Modal` | Accessible dialog overlay |
-| `Badge` | Status/priority/type labels with color coding |
-| `Spinner` | Loading indicator |
-| `ErrorBanner` | Error message with optional retry action |
-| `Toast` | Auto-dismissing notification |
+| Component     | Purpose                                                |
+| ------------- | ------------------------------------------------------ |
+| `Button`      | Primary, secondary, danger variants with loading state |
+| `Input`       | Text input with label and error display                |
+| `Select`      | Dropdown select                                        |
+| `Modal`       | Accessible dialog overlay                              |
+| `Badge`       | Status/priority/type labels with color coding          |
+| `Spinner`     | Loading indicator                                      |
+| `ErrorBanner` | Error message with optional retry action               |
+| `Toast`       | Auto-dismissing notification                           |
 
 Board-specific components handle drag-and-drop events natively (HTML5 Drag and Drop API) without external libraries.
 
