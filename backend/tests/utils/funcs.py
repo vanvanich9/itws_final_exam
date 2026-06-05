@@ -1,10 +1,13 @@
 """Shared test helper functions."""
 
 import uuid
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import httpx
+from core.config.enums import PriorityTask, StatusTask, TypeTask
 from fastapi import Response
+from src.connectors.database.services.tasks import TaskDatabaseConnector
 from src.connectors.database.services.users import UserDatabaseConnector
 
 
@@ -71,3 +74,56 @@ async def create_other_user(
         password='secret',
         name='Other User',
     )
+
+
+async def create_task(
+    task_connector: TaskDatabaseConnector,
+    user_id: uuid.UUID,
+    title: str = 'Seed task',
+    description: str | None = 'Seed description',
+    status: StatusTask = StatusTask.BACKLOG,
+    priority: PriorityTask = PriorityTask.LOW,
+    task_type: TypeTask = TypeTask.OTHER,
+) -> object:
+    """
+    Create a task directly in the database.
+
+    :param task_connector: Task database connector.
+    :param user_id: Owner user identifier.
+    :param title: Task title.
+    :param description: Task description.
+    :param status: Task status.
+    :param priority: Task priority.
+    :param task_type: Task type.
+    :returns: Created task instance.
+    """
+    return await task_connector.create(
+        user_id=user_id,
+        title=title,
+        description=description,
+        status=status,
+        priority=priority,
+        task_type=task_type,
+    )
+
+
+async def age_task(
+    task_connector: TaskDatabaseConnector,
+    task: object,
+    weeks: int,
+) -> object:
+    """
+    Backdate a task's created and updated timestamps by some weeks.
+
+    :param task_connector: Task database connector.
+    :param task: Task instance to backdate.
+    :param weeks: Number of weeks to subtract from the current time.
+    :returns: Updated task instance.
+    """
+    aged = (datetime.now(UTC) - timedelta(weeks=weeks)).replace(tzinfo=None)
+    async with task_connector.session() as sess:
+        row = await sess.merge(task)
+        row.created_at = aged
+        row.updated_at = aged
+        await sess.flush()
+        return row

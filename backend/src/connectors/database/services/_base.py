@@ -16,7 +16,6 @@ class BaseDatabaseConnector:
 
     def __init__(
         self,
-        *,
         host: str,
         port: int,
         username: str,

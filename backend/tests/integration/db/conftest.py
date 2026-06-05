@@ -61,19 +61,6 @@ async def migrated_schema(db_engine: AsyncEngine):
 
 
 @pytest.fixture
-def task_connector(
-    connector_kwargs: dict[str, str | int],
-) -> TaskDatabaseConnector:
-    """
-    Provide task database connector.
-
-    :param connector_kwargs: Connector initialization kwargs.
-    :returns: Task database connector.
-    """
-    return TaskDatabaseConnector(**connector_kwargs)
-
-
-@pytest.fixture
 async def user(user_connector: UserDatabaseConnector):
     """
     Create a test user.
