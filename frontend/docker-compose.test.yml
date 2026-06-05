@@ -1,0 +1,95 @@
+x-db-env: &db-env
+  DATABASE_HOST: postgres
+  DATABASE_PORT: '5432'
+  DATABASE_USERNAME: postgres
+  DATABASE_PASSWORD: postgres
+  DATABASE_NAME: db_test
+  SECRET_KEY: secret-key-for-dev-and-tests-long-enough-for-hs256
+
+services:
+  backend:
+    build:
+      context: ../backend
+      target: dev
+    volumes:
+      - ../backend/core:/app/core
+      - ../backend/src:/app/src
+    environment:
+      <<: *db-env
+      DEBUG: 'true'
+      CORS_ORIGINS: '["http://localhost:4173"]'
+    depends_on:
+      init_db:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'python -c "import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8000/api/ping/\")"'
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test
+    restart: 'no'
+
+  tests:
+    build:
+      context: .
+      target: test
+    environment:
+      CI: 'true'
+      PUBLIC_API_URL: ''
+      BACKEND_URL: http://backend:8000
+      ORIGIN: http://localhost:4173
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - test
+    restart: 'no'
+
+  init_db:
+    build:
+      context: ../backend
+      target: dev
+    entrypoint:
+      - poetry
+      - run
+      - alembic
+      - -c
+      - src/connectors/database/alembic.ini
+      - upgrade
+      - head
+    volumes:
+      - ../backend/core:/app/core
+      - ../backend/src:/app/src
+    environment:
+      <<: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - test
+    restart: 'no'
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test
+    restart: 'no'
+
+networks:
+  test:

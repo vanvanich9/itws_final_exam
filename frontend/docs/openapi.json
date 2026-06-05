@@ -1,0 +1,1325 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Task Manager API",
+		"description": "REST API for user accounts and personal task boards.\n\n**Authentication:** call `POST /api/users/login`, copy the `token` from the response, then click **Authorize** and paste `Bearer <token>` (or just the token, depending on the UI).\n\nThe refresh token is stored in an HTTP-only cookie and is used by `POST /api/users/refresh`.",
+		"version": "1.0.0"
+	},
+	"paths": {
+		"/api/ping/": {
+			"get": {
+				"tags": ["Health"],
+				"summary": "Health check",
+				"description": "Verify that the API is running.",
+				"operationId": "ping_api_ping__get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PingResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/tasks/search": {
+			"post": {
+				"tags": ["Tasks"],
+				"summary": "Search tasks",
+				"description": "Search **your** tasks with optional filters. Set `finished_within_weeks` to **0** to disable the time window filter.",
+				"operationId": "search_tasks_api_tasks_search_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskSearchRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ListTaskResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				]
+			}
+		},
+		"/api/tasks": {
+			"post": {
+				"tags": ["Tasks"],
+				"summary": "Create task",
+				"description": "Create a new task owned by the authenticated user.",
+				"operationId": "create_task_api_tasks_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateTaskRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TaskDetailResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request (validation or business rules)."
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				]
+			}
+		},
+		"/api/tasks/{task_id}": {
+			"get": {
+				"tags": ["Tasks"],
+				"summary": "Get task by ID",
+				"description": "Return a single task. Only the owner can access it.",
+				"operationId": "get_task_api_tasks__task_id__get",
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid",
+							"title": "Task Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TaskDetailResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"403": {
+						"description": "Authenticated but not allowed to access this resource."
+					},
+					"404": {
+						"description": "Resource not found."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["Tasks"],
+				"summary": "Update task",
+				"description": "Partial update of a task. Only the owner can modify it.",
+				"operationId": "update_task_api_tasks__task_id__put",
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid",
+							"title": "Task Id"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateTaskRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TaskDetailResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request (validation or business rules)."
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"403": {
+						"description": "Authenticated but not allowed to access this resource."
+					},
+					"404": {
+						"description": "Resource not found."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Tasks"],
+				"summary": "Delete task",
+				"description": "Delete a task and return its final state. Only the owner can delete it.",
+				"operationId": "delete_task_api_tasks__task_id__delete",
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid",
+							"title": "Task Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TaskDetailResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"403": {
+						"description": "Authenticated but not allowed to access this resource."
+					},
+					"404": {
+						"description": "Resource not found."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/register": {
+			"post": {
+				"tags": ["Users"],
+				"summary": "Register a new user",
+				"description": "Create an account. No authentication required.",
+				"operationId": "register_api_users_register_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request (validation or business rules)."
+					},
+					"409": {
+						"description": "Conflict with existing data."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/login": {
+			"post": {
+				"tags": ["Users"],
+				"summary": "Log in",
+				"description": "Authenticate with email and password. Returns an access token in the body and sets a refresh token in an HTTP-only cookie.",
+				"operationId": "login_api_users_login_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/refresh": {
+			"post": {
+				"tags": ["Users"],
+				"summary": "Refresh access token",
+				"description": "Exchange the `refresh_token` cookie for a new access token. The cookie is rotated on success.",
+				"operationId": "refresh_tokens_api_users_refresh_post",
+				"parameters": [
+					{
+						"name": "refresh_token",
+						"in": "cookie",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"description": "Refresh JWT (set automatically after login).",
+							"title": "Refresh Token"
+						},
+						"description": "Refresh JWT (set automatically after login)."
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/logout": {
+			"post": {
+				"tags": ["Users"],
+				"summary": "Log out",
+				"description": "Clear the refresh token cookie. Does not invalidate the access token.",
+				"operationId": "logout_api_users_logout_post",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/me": {
+			"get": {
+				"tags": ["Users"],
+				"summary": "Current user profile",
+				"description": "Return the profile of the user identified by the Bearer token.",
+				"operationId": "get_me_api_users_me_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					}
+				},
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				]
+			}
+		},
+		"/api/users/{user_id}": {
+			"get": {
+				"tags": ["Users"],
+				"summary": "Get user by ID",
+				"description": "Any authenticated user can view any profile.",
+				"operationId": "get_user_by_id_api_users__user_id__get",
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid",
+							"title": "User Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"404": {
+						"description": "Resource not found."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["Users"],
+				"summary": "Update own profile",
+				"description": "Update email, password, and/or name. Only the account owner may call this.",
+				"operationId": "update_user_api_users__user_id__put",
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid",
+							"title": "User Id"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateUserRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request (validation or business rules)."
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"403": {
+						"description": "Authenticated but not allowed to access this resource."
+					},
+					"404": {
+						"description": "Resource not found."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Users"],
+				"summary": "Delete own account",
+				"description": "Permanently delete the account. Only the account owner may call this.",
+				"operationId": "delete_user_api_users__user_id__delete",
+				"security": [
+					{
+						"HTTPBearer": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid",
+							"title": "User Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid access token."
+					},
+					"403": {
+						"description": "Authenticated but not allowed to access this resource."
+					},
+					"404": {
+						"description": "Resource not found."
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"CreateTaskRequest": {
+				"properties": {
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"title": "Title",
+						"description": "Task title (required, non-empty).",
+						"examples": ["Implement search endpoint"]
+					},
+					"description": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Description",
+						"description": "Optional long description.",
+						"examples": ["Add POST /api/tasks/search with filters."]
+					},
+					"status": {
+						"$ref": "#/components/schemas/StatusTask",
+						"description": "Initial workflow status.",
+						"default": "backlog"
+					},
+					"priority": {
+						"$ref": "#/components/schemas/PriorityTask",
+						"description": "Initial priority.",
+						"default": "low"
+					},
+					"task_type": {
+						"$ref": "#/components/schemas/TypeTask",
+						"description": "Task category.",
+						"default": "other"
+					},
+					"pull_request_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Pull Request Url",
+						"description": "Optional link to a pull request.",
+						"examples": ["https://github.com/org/repo/pull/42"]
+					}
+				},
+				"type": "object",
+				"required": ["title"],
+				"title": "CreateTaskRequest",
+				"description": "Payload for creating a task.",
+				"example": {
+					"description": "Add POST /api/tasks/search with filters.",
+					"priority": "medium",
+					"pull_request_url": "https://github.com/org/repo/pull/42",
+					"status": "backlog",
+					"task_type": "feature",
+					"title": "Implement search endpoint"
+				}
+			},
+			"HTTPValidationError": {
+				"properties": {
+					"detail": {
+						"items": {
+							"$ref": "#/components/schemas/ValidationError"
+						},
+						"type": "array",
+						"title": "Detail"
+					}
+				},
+				"type": "object",
+				"title": "HTTPValidationError"
+			},
+			"ListTaskResponse": {
+				"properties": {
+					"count": {
+						"type": "integer",
+						"title": "Count",
+						"description": "Number of tasks in `tasks`."
+					},
+					"finished_within_weeks": {
+						"type": "integer",
+						"title": "Finished Within Weeks",
+						"description": "Echo of the request filter (0 means filter was ignored)."
+					},
+					"tasks": {
+						"items": {
+							"$ref": "#/components/schemas/TaskResponse"
+						},
+						"type": "array",
+						"title": "Tasks",
+						"description": "Matching tasks."
+					}
+				},
+				"type": "object",
+				"required": ["count", "finished_within_weeks", "tasks"],
+				"title": "ListTaskResponse",
+				"description": "Task search result with metadata.",
+				"example": {
+					"count": 2,
+					"finished_within_weeks": 0,
+					"tasks": [
+						{
+							"id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+							"priority": "high",
+							"status": "in_progress",
+							"title": "Implement search endpoint",
+							"user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+						}
+					]
+				}
+			},
+			"LoginRequest": {
+				"properties": {
+					"email": {
+						"type": "string",
+						"title": "Email",
+						"description": "Registered email address.",
+						"examples": ["user@example.com"]
+					},
+					"password": {
+						"type": "string",
+						"title": "Password",
+						"description": "Account password.",
+						"examples": ["Secret@123"]
+					}
+				},
+				"type": "object",
+				"required": ["email", "password"],
+				"title": "LoginRequest",
+				"description": "Credentials for user authentication."
+			},
+			"PingResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "pong"
+					}
+				},
+				"type": "object",
+				"title": "PingResponse",
+				"description": "Response body for the ping endpoint."
+			},
+			"PriorityTask": {
+				"type": "string",
+				"enum": ["low", "medium", "high", "critical"],
+				"title": "PriorityTask",
+				"description": "Task priority level."
+			},
+			"RegisterRequest": {
+				"properties": {
+					"email": {
+						"type": "string",
+						"title": "Email",
+						"description": "Unique email address.",
+						"examples": ["user@example.com"]
+					},
+					"password": {
+						"type": "string",
+						"title": "Password",
+						"description": "Password (8-20 chars, mixed case, digit, special).",
+						"examples": ["Secret@123"]
+					},
+					"name": {
+						"type": "string",
+						"title": "Name",
+						"description": "Display name.",
+						"examples": ["Jane Doe"]
+					}
+				},
+				"type": "object",
+				"required": ["email", "password", "name"],
+				"title": "RegisterRequest",
+				"description": "Payload for user registration."
+			},
+			"StatusTask": {
+				"type": "string",
+				"enum": ["backlog", "to_do", "in_progress", "on_review", "done", "cancelled"],
+				"title": "StatusTask",
+				"description": "Task workflow status."
+			},
+			"SuccessResponse": {
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"title": "Success",
+						"description": "Whether the operation completed successfully.",
+						"default": true
+					}
+				},
+				"type": "object",
+				"title": "SuccessResponse",
+				"description": "Generic success flag for simple API actions.",
+				"example": {
+					"success": true
+				}
+			},
+			"TaskDetailResponse": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "Id",
+						"description": "Task identifier."
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "User Id",
+						"description": "Owner user identifier."
+					},
+					"title": {
+						"type": "string",
+						"title": "Title",
+						"description": "Task title."
+					},
+					"description": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Description",
+						"description": "Task description."
+					},
+					"status": {
+						"$ref": "#/components/schemas/StatusTask",
+						"description": "Workflow status."
+					},
+					"priority": {
+						"$ref": "#/components/schemas/PriorityTask",
+						"description": "Priority level."
+					},
+					"task_type": {
+						"$ref": "#/components/schemas/TypeTask",
+						"description": "Task category."
+					},
+					"pull_request_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Pull Request Url",
+						"description": "Link to a pull request, if any."
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Created At",
+						"description": "Creation time (UTC)."
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Updated At",
+						"description": "Last update time (UTC)."
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"user_id",
+					"title",
+					"description",
+					"status",
+					"priority",
+					"task_type",
+					"pull_request_url",
+					"created_at",
+					"updated_at"
+				],
+				"title": "TaskDetailResponse",
+				"description": "Full task data returned by the API.",
+				"example": {
+					"created_at": "2026-01-01T12:00:00",
+					"description": "Add POST /api/tasks/search with filters.",
+					"id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+					"priority": "high",
+					"pull_request_url": "https://github.com/org/repo/pull/42",
+					"status": "in_progress",
+					"task_type": "feature",
+					"title": "Implement search endpoint",
+					"updated_at": "2026-01-02T12:00:00",
+					"user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+				}
+			},
+			"TaskResponse": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "Id",
+						"description": "Task identifier."
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "User Id",
+						"description": "Owner user identifier."
+					},
+					"title": {
+						"type": "string",
+						"title": "Title",
+						"description": "Task title."
+					},
+					"status": {
+						"$ref": "#/components/schemas/StatusTask",
+						"description": "Workflow status."
+					},
+					"priority": {
+						"$ref": "#/components/schemas/PriorityTask",
+						"description": "Priority level."
+					}
+				},
+				"type": "object",
+				"required": ["id", "user_id", "title", "status", "priority"],
+				"title": "TaskResponse",
+				"description": "Task summary returned by search.",
+				"example": {
+					"id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+					"priority": "high",
+					"status": "in_progress",
+					"title": "Implement search endpoint",
+					"user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+				}
+			},
+			"TaskSearchRequest": {
+				"properties": {
+					"statuses": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/StatusTask"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Statuses",
+						"description": "Include only tasks with these statuses."
+					},
+					"priorities": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/PriorityTask"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Priorities",
+						"description": "Include only tasks with these priorities."
+					},
+					"task_types": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/TypeTask"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Task Types",
+						"description": "Include only tasks with these types."
+					},
+					"finished_within_weeks": {
+						"type": "integer",
+						"minimum": 0.0,
+						"title": "Finished Within Weeks",
+						"description": "When **0**, the filter is ignored and all your tasks are returned. When **> 0**, done/cancelled tasks older than this many weeks are hidden; other statuses are included.",
+						"default": 0
+					}
+				},
+				"type": "object",
+				"title": "TaskSearchRequest",
+				"description": "Filters for task search.",
+				"example": {
+					"finished_within_weeks": 0,
+					"priorities": ["high", "critical"],
+					"statuses": ["backlog", "in_progress"],
+					"task_types": ["feature", "bug"]
+				}
+			},
+			"TokenResponse": {
+				"properties": {
+					"token": {
+						"type": "string",
+						"title": "Token",
+						"description": "Bearer access token (JWT)."
+					}
+				},
+				"type": "object",
+				"required": ["token"],
+				"title": "TokenResponse",
+				"description": "JWT returned in response body.",
+				"example": {
+					"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+				}
+			},
+			"TypeTask": {
+				"type": "string",
+				"enum": ["feature", "bug", "documentation", "other"],
+				"title": "TypeTask",
+				"description": "Task type."
+			},
+			"UpdateTaskRequest": {
+				"properties": {
+					"title": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Title",
+						"description": "New title (non-empty when provided)."
+					},
+					"description": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Description",
+						"description": "New description."
+					},
+					"status": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/StatusTask"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"description": "New workflow status."
+					},
+					"priority": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/PriorityTask"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"description": "New priority."
+					},
+					"task_type": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/TypeTask"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"description": "New task category."
+					},
+					"pull_request_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Pull Request Url",
+						"description": "New pull request URL."
+					}
+				},
+				"type": "object",
+				"title": "UpdateTaskRequest",
+				"description": "Payload for updating a task (partial update).",
+				"example": {
+					"priority": "high",
+					"status": "in_progress",
+					"title": "Implement search endpoint"
+				}
+			},
+			"UpdateUserRequest": {
+				"properties": {
+					"email": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Email",
+						"description": "New email, if changing.",
+						"examples": ["new@example.com"]
+					},
+					"password": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Password",
+						"description": "New password, if changing.",
+						"examples": ["NewSecret@1"]
+					},
+					"name": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Name",
+						"description": "New display name, if changing.",
+						"examples": ["Jane Smith"]
+					}
+				},
+				"type": "object",
+				"title": "UpdateUserRequest",
+				"description": "Payload for updating a user profile."
+			},
+			"UserResponse": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "Id",
+						"description": "User identifier."
+					},
+					"email": {
+						"type": "string",
+						"title": "Email",
+						"description": "Email address."
+					},
+					"name": {
+						"type": "string",
+						"title": "Name",
+						"description": "Display name."
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Created At",
+						"description": "Account creation time (UTC)."
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Updated At",
+						"description": "Last profile update time (UTC)."
+					}
+				},
+				"type": "object",
+				"required": ["id", "email", "name", "created_at", "updated_at"],
+				"title": "UserResponse",
+				"description": "Public user data returned by the API.",
+				"example": {
+					"created_at": "2026-01-01T12:00:00",
+					"email": "user@example.com",
+					"id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+					"name": "Jane Doe",
+					"updated_at": "2026-01-02T12:00:00"
+				}
+			},
+			"ValidationError": {
+				"properties": {
+					"loc": {
+						"items": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "integer"
+								}
+							]
+						},
+						"type": "array",
+						"title": "Location"
+					},
+					"msg": {
+						"type": "string",
+						"title": "Message"
+					},
+					"type": {
+						"type": "string",
+						"title": "Error Type"
+					},
+					"input": {
+						"title": "Input"
+					},
+					"ctx": {
+						"type": "object",
+						"title": "Context"
+					}
+				},
+				"type": "object",
+				"required": ["loc", "msg", "type"],
+				"title": "ValidationError"
+			}
+		},
+		"securitySchemes": {
+			"HTTPBearer": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		}
+	},
+	"tags": [
+		{
+			"name": "Users",
+			"description": "Registration, login, token refresh, and profile management. Protected routes require a Bearer access token."
+		},
+		{
+			"name": "Tasks",
+			"description": "Create, search, update, and delete tasks. All routes require authentication; you can only access your own tasks."
+		},
+		{
+			"name": "Health",
+			"description": "Service health check."
+		}
+	]
+}
