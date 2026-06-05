@@ -32,7 +32,7 @@ def test_task_response_from_attributes():
 
 def test_task_detail_response_maps_type_field():
     """Verify TaskDetailResponse reads the ORM type attribute."""
-    now = datetime(2024, 1, 1, 10, 0, 0)
+    now = datetime(2026, 1, 1, 10, 0, 0)
     source = SimpleNamespace(
         id=uuid.uuid4(),
         user_id=uuid.uuid4(),
@@ -53,7 +53,7 @@ def test_task_detail_response_maps_type_field():
 
 def test_task_detail_response_serializes_task_type_key():
     """Verify TaskDetailResponse serializes the field as ``task_type``."""
-    now = datetime(2024, 1, 1, 10, 0, 0)
+    now = datetime(2026, 1, 1, 10, 0, 0)
     source = SimpleNamespace(
         id=uuid.uuid4(),
         user_id=uuid.uuid4(),

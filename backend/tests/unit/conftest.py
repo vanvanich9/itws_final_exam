@@ -49,7 +49,7 @@ def make_user():
         :param name: Display name.
         :returns: User-like namespace.
         """
-        now = datetime(2024, 1, 1, 12, 0, 0)
+        now = datetime(2026, 1, 1, 12, 0, 0)
         return SimpleNamespace(
             id=user_id or uuid.uuid4(),
             email=email,
@@ -92,7 +92,7 @@ def make_task():
         :param pull_request_url: Optional pull request URL.
         :returns: Task-like namespace.
         """
-        now = datetime(2024, 1, 1, 12, 0, 0)
+        now = datetime(2026, 1, 1, 12, 0, 0)
         return SimpleNamespace(
             id=task_id or uuid.uuid4(),
             user_id=user_id or uuid.uuid4(),

@@ -195,8 +195,8 @@ class TaskDetailResponse(BaseModel):
                 'priority': PriorityTask.HIGH,
                 'task_type': TypeTask.FEATURE,
                 'pull_request_url': 'https://github.com/org/repo/pull/42',
-                'created_at': '2024-01-01T12:00:00',
-                'updated_at': '2024-01-02T12:00:00',
+                'created_at': '2026-01-01T12:00:00',
+                'updated_at': '2026-01-02T12:00:00',
             },
         },
     )

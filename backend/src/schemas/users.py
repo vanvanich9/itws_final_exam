@@ -67,8 +67,8 @@ class UserResponse(BaseModel):
                 'id': EXAMPLE_UUID,
                 'email': 'user@example.com',
                 'name': 'Jane Doe',
-                'created_at': '2024-01-01T12:00:00',
-                'updated_at': '2024-01-02T12:00:00',
+                'created_at': '2026-01-01T12:00:00',
+                'updated_at': '2026-01-02T12:00:00',
             },
         },
     )

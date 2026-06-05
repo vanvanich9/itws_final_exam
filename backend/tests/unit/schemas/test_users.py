@@ -10,8 +10,8 @@ from src.schemas.users import UpdateUserRequest, UserResponse
 def test_user_response_from_attributes():
     """Verify UserResponse maps from an ORM-like object."""
     user_id = uuid.uuid4()
-    created = datetime(2024, 1, 1, 10, 0, 0)
-    updated = datetime(2024, 1, 2, 11, 0, 0)
+    created = datetime(2026, 1, 1, 10, 0, 0)
+    updated = datetime(2026, 1, 2, 11, 0, 0)
     source = SimpleNamespace(
         id=user_id,
         email='user@example.com',
