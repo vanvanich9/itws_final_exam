@@ -6,16 +6,6 @@ from core.settings.general import GeneralSettings
 from fastapi import Response
 
 
-def _cookie_secure(settings: GeneralSettings) -> bool:
-    """
-    Return whether auth cookies should use the Secure flag.
-
-    :param settings: Application settings.
-    :returns: True when cookies must be HTTPS-only.
-    """
-    return not settings.debug
-
-
 def set_refresh_cookie(
     response: Response,
     refresh_token: str,
@@ -32,7 +22,7 @@ def set_refresh_cookie(
         key=TokenType.REFRESH,
         value=refresh_token,
         httponly=True,
-        secure=_cookie_secure(settings),
+        secure=not settings.debug,
         samesite='lax',
         max_age=int(TOKEN_TTL[TokenType.REFRESH].total_seconds()),
     )
@@ -51,6 +41,6 @@ def clear_refresh_cookie(
     response.delete_cookie(
         key=TokenType.REFRESH,
         httponly=True,
-        secure=_cookie_secure(settings),
+        secure=not settings.debug,
         samesite='lax',
     )

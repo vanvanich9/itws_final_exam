@@ -1,4 +1,23 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/svelte.config.js:/app/svelte.config.js
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+    environment:
+      PUBLIC_API_URL: ''
+      BACKEND_URL: http://backend:8000
+      ORIGIN: http://localhost:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+
   backend:
     build:
       context: ./backend
@@ -15,9 +34,17 @@ services:
       DATABASE_PASSWORD: postgres
       DATABASE_NAME: db
       SECRET_KEY: secret-key-for-dev-and-tests-long-enough-for-hs256
+      DEBUG: 'true'
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:5173"]'
     depends_on:
       init_db:
         condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD-SHELL', 'python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/ping\")" || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   init_db:
     build:
