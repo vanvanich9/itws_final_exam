@@ -7,9 +7,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
+from core.config.enums import PriorityTask, StatusTask, TypeTask
 from src.api.dependencies import (
     get_current_user,
     get_settings,
+    get_task_service,
     get_user_service,
 )
 from src.app import create_app
@@ -60,6 +62,54 @@ def make_user():
 
 
 @pytest.fixture
+def make_task():
+    """
+    Provide a factory building lightweight task-like objects.
+
+    :returns: Factory producing task namespaces.
+    """
+
+    def _make(
+        task_id: uuid.UUID | None = None,
+        user_id: uuid.UUID | None = None,
+        title: str = 'Test task',
+        description: str | None = 'Test description',
+        status: StatusTask = StatusTask.BACKLOG,
+        priority: PriorityTask = PriorityTask.LOW,
+        task_type: TypeTask = TypeTask.OTHER,
+        pull_request_url: str | None = None,
+    ) -> SimpleNamespace:
+        """
+        Build a task object compatible with task API schemas.
+
+        :param task_id: Optional identifier, generated when omitted.
+        :param user_id: Owner identifier, generated when omitted.
+        :param title: Task title.
+        :param description: Task description.
+        :param status: Task status.
+        :param priority: Task priority.
+        :param task_type: Task type.
+        :param pull_request_url: Optional pull request URL.
+        :returns: Task-like namespace.
+        """
+        now = datetime(2024, 1, 1, 12, 0, 0)
+        return SimpleNamespace(
+            id=task_id or uuid.uuid4(),
+            user_id=user_id or uuid.uuid4(),
+            title=title,
+            description=description,
+            status=status,
+            priority=priority,
+            type=task_type,
+            pull_request_url=pull_request_url,
+            created_at=now,
+            updated_at=now,
+        )
+
+    return _make
+
+
+@pytest.fixture
 def user_service_mock() -> MagicMock:
     """
     Provide a mocked user service matching endpoint call signatures.
@@ -77,6 +127,22 @@ def user_service_mock() -> MagicMock:
 
 
 @pytest.fixture
+def task_service_mock() -> MagicMock:
+    """
+    Provide a mocked task service matching endpoint call signatures.
+
+    :returns: Mock task service.
+    """
+    service = MagicMock()
+    service.list = AsyncMock()
+    service.create = AsyncMock()
+    service.get_by_id = AsyncMock()
+    service.update = AsyncMock()
+    service.delete = AsyncMock()
+    return service
+
+
+@pytest.fixture
 def settings_stub() -> SimpleNamespace:
     """
     Provide application settings stub for API dependencies.
@@ -87,17 +153,25 @@ def settings_stub() -> SimpleNamespace:
 
 
 @pytest.fixture
-def app(user_service_mock: MagicMock, settings_stub: SimpleNamespace):
+def app(
+    user_service_mock: MagicMock,
+    task_service_mock: MagicMock,
+    settings_stub: SimpleNamespace,
+):
     """
     Build a FastAPI app with overridden service and settings deps.
 
     :param user_service_mock: Mock user service.
+    :param task_service_mock: Mock task service.
     :param settings_stub: Settings stub.
     :returns: Configured FastAPI application.
     """
     application = create_app()
     application.dependency_overrides[get_user_service] = lambda: (
         user_service_mock
+    )
+    application.dependency_overrides[get_task_service] = lambda: (
+        task_service_mock
     )
     application.dependency_overrides[get_settings] = lambda: settings_stub
     return application

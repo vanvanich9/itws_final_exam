@@ -84,3 +84,4 @@ docstring-quotes = "double"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+addopts = "--order-scope=module"

@@ -2,6 +2,7 @@
 
 import pytest
 from core.settings.database import DatabaseSettings
+from src.connectors.database.services.tasks import TaskDatabaseConnector
 from src.connectors.database.services.users import UserDatabaseConnector
 
 
@@ -45,3 +46,16 @@ def user_connector(
     :returns: User database connector.
     """
     return UserDatabaseConnector(**connector_kwargs)
+
+
+@pytest.fixture
+def task_connector(
+    connector_kwargs: dict[str, str | int],
+) -> TaskDatabaseConnector:
+    """
+    Provide task database connector.
+
+    :param connector_kwargs: Connector initialization kwargs.
+    :returns: Task database connector.
+    """
+    return TaskDatabaseConnector(**connector_kwargs)

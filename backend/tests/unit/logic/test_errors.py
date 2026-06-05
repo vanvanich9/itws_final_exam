@@ -10,6 +10,7 @@ from src.logic.errors import (
     InvalidTokenTypeError,
 )
 from src.logic.models import TokenPair, TokenPayload
+from src.services.tasks.errors import InvalidTitleError, TaskNotFoundError
 from src.services.users.errors import (
     InvalidEmailError,
     InvalidPasswordError,
@@ -33,10 +34,12 @@ def test_token_error_hierarchy():
 
 
 def test_service_error_default_messages():
-    """Verify user service errors expose their default messages."""
+    """Verify service errors expose their default messages."""
     assert str(InvalidEmailError()) == 'Incorrect email'
     assert str(InvalidPasswordError()) == 'Incorrect password'
+    assert str(InvalidTitleError()) == 'Incorrect title'
     assert str(UserNotFoundError()) == 'user not found'
+    assert str(TaskNotFoundError()) == 'task not found'
     assert str(PasswordMismatchError()) == 'incorrect password'
     assert str(UserAlreadyExistsError()) == 'user already exists'
 

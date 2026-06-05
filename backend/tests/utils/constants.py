@@ -11,3 +11,8 @@ SUFFIX = uuid.uuid4().hex[:8]
 MAIN_EMAIL = f'main-{SUFFIX}@example.com'
 MAIN_PASSWORD = VALID_PASSWORD
 MAIN_NAME = 'Main User'
+
+TASK_SUFFIX = uuid.uuid4().hex[:8]
+TASK_OWNER_EMAIL = f'task-owner-{TASK_SUFFIX}@example.com'
+TASK_OWNER_PASSWORD = VALID_PASSWORD
+TASK_OWNER_NAME = 'Task Owner'

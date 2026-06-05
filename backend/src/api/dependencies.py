@@ -7,8 +7,10 @@ from core.config.enums import TokenType
 from core.settings.general import GeneralSettings
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
-from src.connectors.database.models import User
+from src.connectors.database.models import Task, User
 from src.logic.auth import validate_token
+from src.services.tasks.errors import TaskNotFoundError
+from src.services.tasks.service import TaskService
 from src.services.users.service import UserService
 
 
@@ -30,6 +32,16 @@ def get_user_service(request: Request) -> UserService:
     :returns: User service instance.
     """
     return request.app.state.user_service
+
+
+def get_task_service(request: Request) -> TaskService:
+    """
+    Return the task service from request state.
+
+    :param request: Incoming HTTP request.
+    :returns: Task service instance.
+    """
+    return request.app.state.task_service
 
 
 async def get_current_user(
@@ -79,3 +91,32 @@ async def same_user(
             detail='You can only access your own profile',
         )
     return current_user
+
+
+async def get_owned_task(
+    task_id: UUID,
+    current_user: User = Depends(get_current_user),
+    task_service: TaskService = Depends(get_task_service),
+) -> Task:
+    """
+    Load a task and ensure it belongs to the authenticated user.
+
+    :param task_id: Task identifier from the path.
+    :param current_user: Authenticated user dependency.
+    :param task_service: Task service dependency.
+    :returns: Task owned by the current user.
+    :raises HTTPException: When the task is missing or owned by another user.
+    """
+    try:
+        task = await task_service.get_by_id(task_id)
+    except TaskNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    if task.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='You can only access your own tasks',
+        )
+    return task

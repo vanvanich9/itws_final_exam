@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from src.api.dependencies import (
     get_current_user,
     get_settings,
+    get_task_service,
     get_user_service,
     same_user,
 )
@@ -32,6 +33,14 @@ def test_get_user_service_reads_app_state():
     request = request_with_state(user_service=sentinel)
 
     assert get_user_service(request) is sentinel
+
+
+def test_get_task_service_reads_app_state():
+    """Verify get_task_service returns the service from app state."""
+    sentinel = object()
+    request = request_with_state(task_service=sentinel)
+
+    assert get_task_service(request) is sentinel
 
 
 async def test_get_current_user_requires_credentials(secret_key):

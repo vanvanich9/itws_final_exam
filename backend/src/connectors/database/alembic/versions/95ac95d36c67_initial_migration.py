@@ -99,7 +99,7 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('title', sa.String(length=255), nullable=False),
-        sa.Column('description', sa.Text(), nullable=False),
+        sa.Column('description', sa.Text(), nullable=True),
         sa.Column('status', st_use, nullable=False),
         sa.Column('priority', pr_use, nullable=False),
         sa.Column('type', ty_use, nullable=False),

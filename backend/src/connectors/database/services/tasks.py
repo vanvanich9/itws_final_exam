@@ -16,7 +16,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         self,
         user_id: UUID,
         title: str,
-        description: str,
+        description: str | None = None,
         status: StatusTask = StatusTask.BACKLOG,
         priority: PriorityTask = PriorityTask.LOW,
         task_type: TypeTask = TypeTask.OTHER,
@@ -27,7 +27,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
 
         :param user_id: Owner user identifier.
         :param title: Task title.
-        :param description: Task description.
+        :param description: Task description, if provided.
         :param status: Task status.
         :param priority: Task priority.
         :param task_type: Task type.
@@ -64,7 +64,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         statuses: list[StatusTask] | None = None,
         priorities: list[PriorityTask] | None = None,
         task_types: list[TypeTask] | None = None,
-        updated_within_weeks: int | None = None,
+        finished_within_weeks: int | None = None,
     ) -> list[Task]:
         """
         List tasks with optional filters.
@@ -73,8 +73,8 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         :param statuses: Filter by statuses, if provided.
         :param priorities: Filter by priorities, if provided.
         :param task_types: Filter by task types, if provided.
-        :param updated_within_weeks: When set, include done/cancelled tasks
-            only if updated within this many weeks; always include other
+        :param finished_within_weeks: When set, include done/cancelled tasks
+            only if finished within this many weeks; always include other
             statuses.
         :returns: Matching tasks.
         """
@@ -95,9 +95,9 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
                 stmt = stmt.where(Task.priority.in_(priorities))
             if task_types is not None:
                 stmt = stmt.where(Task.type.in_(task_types))
-            if updated_within_weeks is not None:
+            if finished_within_weeks is not None:
                 cutoff = (
-                    datetime.now(UTC) - timedelta(weeks=updated_within_weeks)
+                    datetime.now(UTC) - timedelta(weeks=finished_within_weeks)
                 ).replace(tzinfo=None)
                 done_or_cancelled = (
                     StatusTask.DONE,
@@ -126,7 +126,7 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
         """
         Update task fields.
 
-        :param task_id: Task identifier.
+        :param task: Task instance to update.
         :param user_id: New owner identifier, if provided.
         :param title: New title, if provided.
         :param description: New description, if provided.
@@ -155,15 +155,15 @@ class TaskDatabaseConnector(BaseDatabaseConnector):
             await sess.flush()
             return merged
 
-    async def delete(self, task: Task) -> bool:
+    async def delete(self, task: Task) -> Task:
         """
         Delete a task.
 
         :param task: Task instance to delete.
-        :returns: True when deletion succeeds.
+        :returns: Deleted task.
         """
         async with self.session() as sess:
             merged = await sess.merge(task)
             await sess.delete(merged)
             await sess.commit()
-            return True
+            return merged

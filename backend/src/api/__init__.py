@@ -2,10 +2,12 @@
 
 from fastapi import APIRouter
 from src.api.ping import router as ping_router
+from src.api.tasks import router as tasks_router
 from src.api.users import router as users_router
 
 api_router = APIRouter(prefix='/api')
 api_router.include_router(ping_router)
+api_router.include_router(tasks_router)
 api_router.include_router(users_router)
 
 __all__ = ['api_router']

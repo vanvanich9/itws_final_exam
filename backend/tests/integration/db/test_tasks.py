@@ -5,6 +5,24 @@ from datetime import UTC, datetime, timedelta
 from core.config.enums import PriorityTask, StatusTask, TypeTask
 
 
+async def test_task_create_without_description(task_connector, user):
+    """
+    Verify task can be created without description.
+
+    :param task_connector: Task database connector.
+    :param user: Owner user fixture.
+    """
+    created = await task_connector.create(
+        user_id=user.id,
+        title='Title only',
+    )
+    found = await task_connector.get_by_id(created.id)
+
+    assert found is not None
+    assert found.title == 'Title only'
+    assert found.description is None
+
+
 async def test_task_create_and_get_by_id(task_connector, task, user):
     """
     Verify task can be fetched by identifier after creation.
@@ -61,9 +79,9 @@ async def test_task_list_filters(task_connector, task, user):
     assert empty_status == []
 
 
-async def test_task_updated_within_weeks(task_connector, user):
+async def test_task_finished_within_weeks(task_connector, user):
     """
-    Verify updated_within_weeks excludes stale done tasks.
+    Verify finished_within_weeks excludes stale done tasks.
 
     :param task_connector: Task database connector.
     :param user: Owner user fixture.
@@ -95,7 +113,7 @@ async def test_task_updated_within_weeks(task_connector, user):
 
     actual = await task_connector.list(
         user_id=user.id,
-        updated_within_weeks=2,
+        finished_within_weeks=2,
     )
     actual_ids = {item.id for item in actual}
 
@@ -138,5 +156,6 @@ async def test_task_delete(task_connector, task):
     deleted = await task_connector.delete(task)
     found = await task_connector.get_by_id(task.id)
 
-    assert deleted is True
+    assert deleted is not None
+    assert deleted.id == task.id
     assert found is None

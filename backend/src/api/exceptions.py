@@ -7,6 +7,7 @@ from src.logic.errors import (
     InvalidTokenError,
     InvalidTokenTypeError,
 )
+from src.services.tasks.errors import InvalidTitleError, TaskNotFoundError
 from src.services.users.errors import (
     InvalidEmailError,
     InvalidPasswordError,
@@ -44,8 +45,26 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={'detail': str(exc)},
         )
 
+    @app.exception_handler(TaskNotFoundError)
+    async def not_found_handler(
+        _request: Request,
+        exc: Exception,
+    ) -> JSONResponse:
+        """
+        Map missing task errors to HTTP 404 responses.
+
+        :param _request: Incoming HTTP request.
+        :param exc: Raised domain exception.
+        :returns: JSON error response.
+        """
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={'detail': str(exc)},
+        )
+
     @app.exception_handler(InvalidEmailError)
     @app.exception_handler(InvalidPasswordError)
+    @app.exception_handler(InvalidTitleError)
     async def bad_request_handler(
         _request: Request,
         exc: Exception,

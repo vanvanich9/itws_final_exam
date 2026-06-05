@@ -26,7 +26,7 @@ class Task(Base):
         Uuid(as_uuid=True), ForeignKey('users.id'), nullable=False
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[StatusTask] = mapped_column(
         Enum(StatusTask, values_callable=enum_values),
         default=StatusTask.BACKLOG,
