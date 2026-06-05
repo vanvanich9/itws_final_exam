@@ -30,8 +30,8 @@ The project is a monorepo with two independently deployable applications:
                                              │ fetch               │            │
                                              ▼                     │            │
                                        ┌─────────────┐ ───────────►│            │
-                                       │   Backend   │              │            │
-                                       │  (FastAPI)  │ ◄─────────── └────────────┘
+                                       │   Backend   │             │            │
+                                       │  (FastAPI)  │ ◄────────── └────────────┘
                                        └─────────────┘
 ```
 
