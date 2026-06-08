@@ -37,7 +37,7 @@ services:
       DEBUG: 'true'
       CORS_ORIGINS: '["http://localhost:3000","http://localhost:5173"]'
     depends_on:
-      init_db:
+      seed_db:
         condition: service_completed_successfully
     healthcheck:
       test: ['CMD-SHELL', 'python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/ping\")" || exit 1']
@@ -71,6 +71,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    restart: 'no'
+
+  seed_db:
+    image: postgres:17
+    entrypoint: ['/bin/sh', '/seed_db.sh']
+    volumes:
+      - ./seed_db.sh:/seed_db.sh:ro
+      - ./db_dump.sql:/db_dump.sql:ro
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: '5432'
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: db
+    depends_on:
+      init_db:
+        condition: service_completed_successfully
     restart: 'no'
 
   postgres:
